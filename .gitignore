@@ -1,0 +1,14 @@
+# IDEs
+.vs
+.vscode
+
+# cmake
+build
+
+# temp
+temp
+
+# python
+.pyc
+.pyo
+.pyd
