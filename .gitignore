@@ -9,6 +9,6 @@ build
 temp
 
 # python
-.pyc
-.pyo
-.pyd
+*.pyc
+*.pyo
+*.pyd
