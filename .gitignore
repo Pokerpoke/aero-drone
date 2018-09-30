@@ -12,3 +12,4 @@ temp
 *.pyc
 *.pyo
 *.pyd
+py.*
