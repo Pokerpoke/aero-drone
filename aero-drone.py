@@ -13,9 +13,9 @@ def sgn(num):
     else:
         return -1
 
-#  vehicle = connect("127.0.0.1:14555", wait_ready=True)
-#  arm_and_take_off(vehicle, 5)
-#  vehicle.groundspeed = 1  # m/s
+ vehicle = connect("192.168.0.24:14555", wait_ready=True)
+ arm_and_take_off(vehicle, 5)
+ vehicle.groundspeed = 1  # m/s
 
 
 ser = serial.Serial("/dev/serial0", 115200, timeout=0.5)
@@ -43,10 +43,9 @@ while(True):
     dest_y = math.sin(rotate_theta/2/math.pi)*dx + \
         math.cos(rotate_theta/2/math.pi)*dy
 
-    print(dest_x)
-    print(dest_x)
+    print(dest_x+", "+dest_y)
 
-    #  goto(sgn(dx)*10,
+    goto(sgn(dest_x)*0.1, sgn(dest_y)*0.1)
 
 vehicle.mode = VehicleMode("LAND")
 vehicle.close()
