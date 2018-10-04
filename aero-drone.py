@@ -14,7 +14,9 @@ def sgn(num):
     else:
         return -1
 
-vehicle = connect("192.168.0.24:14555", wait_ready=True)
+
+# vehicle = connect("192.168.0.24:14555", wait_ready=True)
+vehicle = connect("/dev/ttyACM0", wait_ready=True)
 arm_and_take_off(vehicle, 5)
 vehicle.groundspeed = 1  # m/s
 
@@ -47,7 +49,7 @@ while(True):
 
     print(str(dest_x)+", "+str(dest_y))
 
-    goto(vehicle,0.1*dest_x, 0.1*dest_y)
+    goto(vehicle, 0.1*dest_x, 0.1*dest_y)
 
 vehicle.mode = VehicleMode("LAND")
 vehicle.close()
