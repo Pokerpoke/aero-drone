@@ -110,8 +110,8 @@ def goto(vehicle, dNorth, dEast, gotoFunction=None):
         if remainingDistance <= 1:
             print("Reached target")
             break
-        # elif remainingDistance > 0.5 and remainingDistance <= 2:
-        #     gotoFunction(targetLocation)
+        elif remainingDistance > 1 and remainingDistance <= 2:
+            gotoFunction(targetLocation)
         time.sleep(2)
 
 
