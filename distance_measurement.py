@@ -49,6 +49,7 @@ def print_distance():
         lock_distance.acquire()
         print(DISTANCE_TO_OBSTACLE)
         lock_distance.release()
+        time.sleep(0.5)
 
 
 def main():
