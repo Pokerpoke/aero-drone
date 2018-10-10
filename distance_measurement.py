@@ -37,6 +37,8 @@ def distance_measure():
         lock_distance.acquire()
         try:
             DISTANCE_TO_OBSTACLE = round(duration * 17150, 2)
+        except KeyboardInterrupt:
+            sys.exit()
         finally:
             # release
             lock_distance.release()
