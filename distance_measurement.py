@@ -40,6 +40,7 @@ def distance_measure():
         finally:
             # release
             lock_distance.release()
+        time.sleep(0.1)
 
 
 def print_distance():
@@ -52,8 +53,11 @@ def print_distance():
 
 def main():
     t1 = threading.Thread(target=distance_measure)
+    t2 = threading.Thread(target=print_distance)
     t1.start()
+    t2.start()
     t1.join()
+    t2.join()
 
 
 if __name__ == '__main__':
