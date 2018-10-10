@@ -2,6 +2,15 @@
 # -*- coding:utf-8 -*-
 
 import threading
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setwarnings(False)
+TRIG = 18
+ECHO = 16
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
 
 DISTANCE_TO_OBSTACLE = 0
 lock_distance = threading.Lock()
