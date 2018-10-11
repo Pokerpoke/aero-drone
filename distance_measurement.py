@@ -66,7 +66,7 @@ def obstacle_avoidance():
         if DISTANCE_TO_OBSTACLE > 350:
             # turn right
             goto(vehicle,
-                 step_distance*math.cos(r_theta/180.0*math.pi)
+                 step_distance*math.cos(r_theta/180.0*math.pi),
                  step_distance*math.sin(r_theta/180.0*math.pi))
         elif DISTANCE_TO_OBSTACLE < 350:
             # forward
@@ -89,18 +89,6 @@ def print_distance():
 
 
 def main():
-<<<<<<< HEAD
-    t1 = threading.Thread(target=distance_measure)
-    t2 = threading.Thread(target=print_distance)
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
-    try:
-        pass
-    except KeyboardInterrupt:
-        sys.exit()
-=======
     # arm_and_take_off(vehicle, 5)
     # vehicle.groundspeed = 1  # m/s
     for func in [distance_measure,
@@ -117,7 +105,6 @@ def main():
             lock_distance.acquire()
             ARRIVED = True
             lock_distance.release()
->>>>>>> f0201dfeddc75fa7537afc9a1c1010b74730e350
 
 
 if __name__ == '__main__':
