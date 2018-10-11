@@ -40,10 +40,10 @@ def main():
         dx = openmv_cx-160
         dy = openmv_cy-120
 
-        dest_x = math.cos(rotate_theta/2/math.pi)*dx - \
-            math.sin(rotate_theta/2/math.pi)*dy
-        dest_y = math.sin(rotate_theta/2/math.pi)*dx + \
-            math.cos(rotate_theta/2/math.pi)*dy
+        dest_x = math.cos(rotate_theta/180*math.pi)*dx - \
+            math.sin(rotate_theta/180*math.pi)*dy
+        dest_y = math.sin(rotate_theta/180*math.pi)*dx + \
+            math.cos(rotate_theta/180*math.pi)*dy
 
         print(str(dest_x)+", "+str(dest_y))
 
