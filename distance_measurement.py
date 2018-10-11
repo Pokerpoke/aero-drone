@@ -43,11 +43,7 @@ def distance_measure():
         # Lock
         lock_distance.acquire()
         try:
-<<<<<<< HEAD
-            DISTANCE_TO_OBSTACLE = round(duration * 17150, 2)
-=======
             DISTANCE_TO_OBSTACLE = round(duration * 17150.0, 2)
->>>>>>> f0201dfeddc75fa7537afc9a1c1010b74730e350
         finally:
             # release
             lock_distance.release()
