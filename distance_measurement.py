@@ -13,7 +13,6 @@ import serial
 
 vehicle = connect("127.0.0.1:14555", wait_ready=True)
 DISTANCE_TO_OBSTACLE = 0
-ARRIVED = False
 lock_distance = threading.Lock()
 
 
@@ -48,8 +47,6 @@ def distance_measure():
             # release
             lock_distance.release()
         time.sleep(0.1)
-        if ARRIVED:
-            return None
 
 
 def obstacle_avoidance():
@@ -73,8 +70,6 @@ def obstacle_avoidance():
             goto(vehicle,
                  step_distance*math.cos(f_theta/180.0*math.pi),
                  step_distance*math.sin(f_theta/180.0*math.pi))
-        if ARRIVED:
-            return None
 
 
 def print_distance():
@@ -84,27 +79,25 @@ def print_distance():
         print("Distance to obstacle: "+str(DISTANCE_TO_OBSTACLE))
         # lock_distance.release()
         time.sleep(0.5)
-        if ARRIVED:
-            return None
 
 
 def main():
     # arm_and_take_off(vehicle, 5)
     # vehicle.groundspeed = 1  # m/s
+    threads = []
     for func in [distance_measure,
                  obstacle_avoidance,
                  print_distance]:
-        t = threading.Thread(target=func)
-        t.start()
-        t.join()
+        threads.append(threading.Thread(target=func))
+        threads[-1].start()
+    for thread in threads:
+        thread.join()
 
     while (True):
         try:
             pass
         except KeyboardInterrupt:
-            lock_distance.acquire()
-            ARRIVED = True
-            lock_distance.release()
+            sys.exit()
 
 
 if __name__ == '__main__':
