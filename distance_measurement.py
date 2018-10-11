@@ -49,7 +49,22 @@ def distance_measure():
         time.sleep(0.1)
 
 
+def print_distance():
+    """
+    Print distance to obstacle.
+    """
+    while (True):
+        global DISTANCE_TO_OBSTACLE
+        # lock_distance.acquire()
+        print("Distance to obstacle: "+str(DISTANCE_TO_OBSTACLE))
+        # lock_distance.release()
+        time.sleep(0.5)
+
+
 def obstacle_avoidance():
+    """
+    Turn right/left to avoide obstcle.
+    """
     # degree of heading
     heading = vehicle.heading
     step_distance = 0.3  # m
@@ -65,20 +80,14 @@ def obstacle_avoidance():
             goto(vehicle,
                  step_distance*math.cos(r_theta/180.0*math.pi),
                  step_distance*math.sin(r_theta/180.0*math.pi))
+            goto(vehicle,
+                 step_distance*math.cos(l_theta/180.0*math.pi),
+                 step_distance*math.sin(l_theta/180.0*math.pi))
         elif DISTANCE_TO_OBSTACLE < 350:
             # forward
             goto(vehicle,
                  step_distance*math.cos(f_theta/180.0*math.pi),
                  step_distance*math.sin(f_theta/180.0*math.pi))
-
-
-def print_distance():
-    while (True):
-        global DISTANCE_TO_OBSTACLE
-        # lock_distance.acquire()
-        print("Distance to obstacle: "+str(DISTANCE_TO_OBSTACLE))
-        # lock_distance.release()
-        time.sleep(0.5)
 
 
 def main():
