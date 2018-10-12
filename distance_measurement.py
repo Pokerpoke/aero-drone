@@ -12,6 +12,7 @@ import serial
 
 
 vehicle = connect("127.0.0.1:14555", wait_ready=True)
+# vehicle = connect("192.168.0.19:14555", wait_ready=True)
 DISTANCE_TO_OBSTACLE = 0
 lock_distance = threading.Lock()
 
@@ -55,9 +56,9 @@ def print_distance():
     """
     while (True):
         global DISTANCE_TO_OBSTACLE
-        # lock_distance.acquire()
+        lock_distance.acquire()
         print("Distance to obstacle: "+str(DISTANCE_TO_OBSTACLE))
-        # lock_distance.release()
+        lock_distance.release()
         time.sleep(0.5)
 
 
@@ -67,7 +68,7 @@ def obstacle_avoidance():
     """
     # degree of heading
     heading = vehicle.heading
-    step_distance = 0.3  # m
+    step_distance = 3  # m
     # forward theta
     f_theta = (heading) % 360
     # right theta
@@ -75,24 +76,26 @@ def obstacle_avoidance():
     # left theta
     l_theta = (heading-90.0) % 360
     while (True):
-        if DISTANCE_TO_OBSTACLE > 350:
+        if DISTANCE_TO_OBSTACLE < 100:
             # turn right
-            goto(vehicle,
-                 step_distance*math.cos(r_theta/180.0*math.pi),
-                 step_distance*math.sin(r_theta/180.0*math.pi))
-            goto(vehicle,
-                 step_distance*math.cos(l_theta/180.0*math.pi),
-                 step_distance*math.sin(l_theta/180.0*math.pi))
-        elif DISTANCE_TO_OBSTACLE < 350:
+            # goto(vehicle,
+                 # step_distance*math.cos(r_theta/180.0*math.pi),
+                 # step_distance*math.sin(r_theta/180.0*math.pi))
+            # goto(vehicle,
+                 # step_distance*math.cos(l_theta/180.0*math.pi),
+                 # step_distance*math.sin(l_theta/180.0*math.pi))
+            send_body_ned_velocity(vehicle,0,0.5,0,1)
+        elif DISTANCE_TO_OBSTACLE > 100:
             # forward
-            goto(vehicle,
-                 step_distance*math.cos(f_theta/180.0*math.pi),
-                 step_distance*math.sin(f_theta/180.0*math.pi))
+            # goto(vehicle,
+                 # step_distance*math.cos(f_theta/180.0*math.pi),
+                 # step_distance*math.sin(f_theta/180.0*math.pi))
+            send_body_ned_velocity(vehicle,0.5,0,0,1)
 
 
 def main():
-    # arm_and_take_off(vehicle, 5)
-    # vehicle.groundspeed = 1  # m/s
+    arm_and_take_off(vehicle, 5)
+    vehicle.groundspeed = 1  # m/s
     threads = []
     for func in [distance_measure,
                  obstacle_avoidance,
