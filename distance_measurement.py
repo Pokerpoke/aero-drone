@@ -47,7 +47,7 @@ def distance_measure():
         finally:
             # release
             lock_distance.release()
-        time.sleep(0.1)
+        time.sleep(0.5)
 
 
 def print_distance():
@@ -76,7 +76,7 @@ def obstacle_avoidance():
     # left theta
     l_theta = (heading-90.0) % 360
     while (True):
-        if DISTANCE_TO_OBSTACLE < 100:
+        if DISTANCE_TO_OBSTACLE > 70 and DISTANCE_TO_OBSTACLE < 100:
             # turn right
             # goto(vehicle,
                  # step_distance*math.cos(r_theta/180.0*math.pi),
@@ -90,11 +90,12 @@ def obstacle_avoidance():
             # goto(vehicle,
                  # step_distance*math.cos(f_theta/180.0*math.pi),
                  # step_distance*math.sin(f_theta/180.0*math.pi))
-            send_body_ned_velocity(vehicle,0.5,0,0,1)
+            # send_body_ned_velocity(vehicle,0.5,0,0,1)
+            pass
 
 
 def main():
-    arm_and_take_off(vehicle, 5)
+    arm_and_take_off(vehicle, 3)
     vehicle.groundspeed = 1  # m/s
     threads = []
     for func in [distance_measure,
