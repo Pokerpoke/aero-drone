@@ -102,6 +102,7 @@ def main():
                  obstacle_avoidance,
                  print_distance]:
         threads.append(threading.Thread(target=func))
+        threads.setDaemon(True)
         threads[-1].start()
     for thread in threads:
         thread.join()
@@ -110,7 +111,7 @@ def main():
         try:
             pass
         except KeyboardInterrupt:
-            sys.exit()
+            break
 
 
 if __name__ == '__main__':
