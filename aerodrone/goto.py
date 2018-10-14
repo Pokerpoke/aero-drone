@@ -211,9 +211,12 @@ def send_body_ned_velocity(vehicle, velocity_x, velocity_y, velocity_z, duration
         velocity_x, velocity_y, velocity_z,  # m/s
         0, 0, 0,  # x, y, z acceleration
         0, 0)
-    for x in range(0, duration):
+    if duration < 1.0:
         vehicle.send_mavlink(msg)
-        time.sleep(1)
+    else:
+        for x in range(0, duration):
+            vehicle.send_mavlink(msg)
+            time.sleep(1)
 
 
 """
