@@ -9,10 +9,11 @@ import time
 import math
 import json
 import serial
+import sys
 
 
-vehicle = connect("127.0.0.1:14555", wait_ready=True)
-# vehicle = connect("192.168.0.19:14555", wait_ready=True)
+# vehicle = connect("127.0.0.1:14555", wait_ready=True)
+vehicle = connect("192.168.0.17:14555", wait_ready=True)
 DISTANCE_TO_OBSTACLE = 0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
@@ -50,7 +51,7 @@ def distance_measure():
         distance_lock.release()
         distance_udpated.set()
 
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
 
 def print_distance():
@@ -82,21 +83,20 @@ def obstacle_avoidance():
     """
     Turn right/left to avoide obstcle.
     """
+    global DISTANCE_TO_OBSTACLE
     while (True):
-        global DISTANCE_TO_OBSTACLE
-        if distance_udpated.set():
-
+        if distance_udpated.is_set():
             distance_lock.acquire()
-            if DISTANCE_TO_OBSTACLE > 10 and DISTANCE_TO_OBSTACLE < 100:
+            if DISTANCE_TO_OBSTACLE < 100 and DISTANCE_TO_OBSTACLE > 10:
                 move_left(0.5)
             elif DISTANCE_TO_OBSTACLE > 100:
                 move_forward(0.5)
-                # pass
+                pass
             distance_lock.release()
 
             distance_udpated.clear()
             continue
-        move_forward(0.5)
+        # move_forward(0.5)
 
 
 def main():
@@ -116,7 +116,9 @@ def main():
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            break
+            vehicle.mode = VehicleMode("LAND")
+            vehicle.close()
+            sys.exit()
 
 
 if __name__ == '__main__':
