@@ -12,8 +12,8 @@ import serial
 import sys
 
 
-vehicle = connect("127.0.0.1:14555", wait_ready=True)
-# vehicle = connect("192.168.0.17:14555", wait_ready=True)
+# vehicle = connect("127.0.0.1:14555", wait_ready=True)
+vehicle = connect("192.168.0.17:14555", wait_ready=True)
 distance_to_obstacle = 0.0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
@@ -27,6 +27,8 @@ def distance_measure():
     """
     Get distance to obstacle.
     """
+    global distance_to_obstacle
+
     GPIO.setwarnings(False)
     TRIG = 18
     ECHO = 16
@@ -40,7 +42,7 @@ def distance_measure():
         t_sum = 0.0
         t_times = 0.0
 
-        for _ in range(20):
+        for _ in range(5):
             GPIO.output(TRIG, True)
             time.sleep(0.1)
             GPIO.output(TRIG, False)
@@ -52,15 +54,14 @@ def distance_measure():
             pulse_end = time.time()
             duration = pulse_end - pulse_start
 
-            global distance_to_obstacle
             distance_to_obstacle_new = round(duration * 17150.0, 2)
 
-            if distance_to_obstacle_new < 500 and distance_to_obstacle_new > 10:
-                t_sum = t_sum + distance_to_obstacle
-                t_times = t_times + 1
+            # if distance_to_obstacle_new < 500 and distance_to_obstacle_new > 10:
+            t_sum = t_sum + distance_to_obstacle_new
         
-        t_sum = t_sum / t_times
+        t_sum = t_sum / 5.0
 
+        # print(str(t_sum) + " , " + str(t_times))
         distance_lock.acquire()
         # filter
         distance_to_obstacle = t_sum
@@ -71,24 +72,26 @@ def distance_measure():
 
 
 def move_forward(v, duration=1):
+    global current_pos_y
     send_body_ned_velocity(vehicle, v, 0, 0, duration)
     current_pos_y = current_pos_y + v * duration
     return True
 
 
 def move_left(v, duration=1):
+    global current_pos_x
     send_body_ned_velocity(vehicle, 0, -v, 0, duration)
     current_pos_x = current_pos_x + v * duration
     return True
 
 def move_right(v, duration=1):
+    global current_pos_x
     send_body_ned_velocity(vehicle, 0, v, 0, duration)
     current_pos_x = current_pos_x - v * duration
     return True
 
 def back_to_center():
     global current_pos_x
-    global step_duration
     global step_velocity
     while (current_pos_x != 0):
         if current_pos_x > 0:
@@ -126,7 +129,7 @@ def obstacle_avoidance():
             break
 
         # if distance_udpated.is_set():
-        distance_udpated.wait():
+        distance_udpated.wait()
         # distance_lock.acquire()
         print("Distance to obstacle (used): "+str(distance_to_obstacle))
         if distance_to_obstacle < 100 and distance_to_obstacle > 10:
@@ -150,7 +153,7 @@ def obstacle_avoidance():
 
 
 def main():
-    # arm_and_take_off(vehicle, 2)
+    arm_and_take_off(vehicle, 2)
     vehicle.groundspeed = 1  # m/s
     threads = []
     for func in [distance_measure,
