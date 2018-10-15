@@ -12,8 +12,8 @@ import serial
 import sys
 
 
-# vehicle = connect("127.0.0.1:14555", wait_ready=True)
-vehicle = connect("192.168.0.17:14555", wait_ready=True)
+vehicle = connect("127.0.0.1:14555", wait_ready=True)
+# vehicle = connect("192.168.0.17:14555", wait_ready=True)
 distance_to_obstacle = 0.0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
@@ -32,7 +32,7 @@ def distance_measure():
     GPIO.setup(TRIG, GPIO.OUT)
     GPIO.setup(ECHO, GPIO.IN)
 
-    A = 10
+    A = 20
 
     while(True):
         GPIO.output(TRIG, True)
@@ -50,6 +50,7 @@ def distance_measure():
         distance_to_obstacle_new = round(duration * 17150.0, 2)
 
         distance_lock.acquire()
+        print("Distance to obstacle be: "+str(distance_to_obstacle))
         if distance_to_obstacle_new < 120 and \
             distance_to_obstacle < 120 and \
             abs(distance_to_obstacle_new - distance_to_obstacle) > A:
@@ -57,7 +58,7 @@ def distance_measure():
         else:
             distance_to_obstacle = distance_to_obstacle_new
 
-        print("Distance to obstacle: "+str(distance_to_obstacle))
+        print("Distance to obstacle af: "+str(distance_to_obstacle))
 
         # release lock
         distance_lock.release()
@@ -78,7 +79,8 @@ def print_distance():
 
 
 def move_forward(v, duration=1):
-    return send_body_ned_velocity(vehicle, v, 0, 0, duration)
+    return send_body_ned_velocity(vehicle, 0.2, 0, 0, duration)
+    # time.sleep(1)
 
 
 def move_right(v, duration=1):
@@ -140,13 +142,14 @@ def obstacle_avoidance():
                 print("Current Y: " + str(current_pos_y))
                 pass
 
+            print("Distance to obstacle (used): "+str(distance_to_obstacle))
             # distance_lock.release()
             distance_udpated.clear()
             continue
 
 
 def main():
-    arm_and_take_off(vehicle, 3)
+    # arm_and_take_off(vehicle, 2)
     vehicle.groundspeed = 1  # m/s
     threads = []
     # for func in [distance_measure,
