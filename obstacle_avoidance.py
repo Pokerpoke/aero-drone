@@ -20,6 +20,8 @@ distance_udpated = threading.Event()
 current_pos_y = 0.0
 current_pos_x = 0.0
 
+step_velocity = 0.5
+step_duration = 1.0
 
 def distance_measure():
     """
@@ -32,79 +34,88 @@ def distance_measure():
     GPIO.setup(TRIG, GPIO.OUT)
     GPIO.setup(ECHO, GPIO.IN)
 
-    A = 20
+    while (True):
+        distance_udpated.clear()
 
-    while(True):
-        GPIO.output(TRIG, True)
-        time.sleep(0.1)
-        GPIO.output(TRIG, False)
-        while GPIO.input(ECHO) == 0:
-            pass
-        pulse_start = time.time()
-        while GPIO.input(ECHO) == 1:
-            pass
-        pulse_end = time.time()
-        duration = pulse_end-pulse_start
+        t_sum = 0.0
+        t_times = 0.0
 
-        global distance_to_obstacle
-        distance_to_obstacle_new = round(duration * 17150.0, 2)
+        for _ in range(20):
+            GPIO.output(TRIG, True)
+            time.sleep(0.1)
+            GPIO.output(TRIG, False)
+            while GPIO.input(ECHO) == 0:
+                pass
+            pulse_start = time.time()
+            while GPIO.input(ECHO) == 1:
+                pass
+            pulse_end = time.time()
+            duration = pulse_end - pulse_start
+
+            global distance_to_obstacle
+            distance_to_obstacle_new = round(duration * 17150.0, 2)
+
+            if distance_to_obstacle_new < 500 and distance_to_obstacle_new > 10:
+                t_sum = t_sum + distance_to_obstacle
+                t_times = t_times + 1
+        
+        t_sum = t_sum / t_times
 
         distance_lock.acquire()
-        print("Duration: "+str(duration))
-        if distance_to_obstacle_new < 120 and \
-            distance_to_obstacle < 120 and \
-            abs(distance_to_obstacle_new - distance_to_obstacle) > A:
-            distance_to_obstacle = distance_to_obstacle
-        else:
-            distance_to_obstacle = distance_to_obstacle_new
-
-        print("Distance to obstacle af: "+str(distance_to_obstacle))
-
+        # filter
+        distance_to_obstacle = t_sum
+        print("Distance to obstacle: " + str(distance_to_obstacle))
         # release lock
         distance_lock.release()
         distance_udpated.set()
 
 
-def print_distance():
-    """
-    Print distance to obstacle.
-    """
-    while (True):
-        global distance_to_obstacle
-        distance_udpated.wait()
-        distance_lock.acquire()
-        print("Distance to obstacle: "+str(distance_to_obstacle))
-        distance_lock.release()
-        time.sleep(0.1)
-
-
 def move_forward(v, duration=1):
-    return send_body_ned_velocity(vehicle, 0.2, 0, 0, duration)
-    # time.sleep(1)
-
-
-def move_right(v, duration=1):
-    return send_body_ned_velocity(vehicle, 0, v, 0, duration)
+    send_body_ned_velocity(vehicle, v, 0, 0, duration)
+    current_pos_y = current_pos_y + v * duration
+    return True
 
 
 def move_left(v, duration=1):
-    return send_body_ned_velocity(vehicle, 0, -v, 0, duration)
+    send_body_ned_velocity(vehicle, 0, -v, 0, duration)
+    current_pos_x = current_pos_x + v * duration
+    return True
+
+def move_right(v, duration=1):
+    send_body_ned_velocity(vehicle, 0, v, 0, duration)
+    current_pos_x = current_pos_x - v * duration
+    return True
 
 def back_to_center():
     global current_pos_x
-    while (current_pos_x > 0):
-        move_right(0.5)
-        current_pos_x = current_pos_x - 0.5
+    global step_duration
+    global step_velocity
+    while (current_pos_x != 0):
+        if current_pos_x > 0:
+            move_right(step_velocity)
+        elif current_pos_x < 0:
+            move_left(step_velocity)
     print("Current X: " + str(current_pos_x))
-
+    return True
 
 def obstacle_avoidance():
     """
     Turn right/left to avoide obstcle.
     """
     global distance_to_obstacle
+    # playground
+    # 
+    # |         |
+    # |    -----|
+    # |         |
+    # |-----    |
+    # |         |
+    # |         |
+    # current_pos_x : ←   
+    # current_pos_y : ↑
     global current_pos_x
     global current_pos_y
+    global step_velocity
     while (True):
         if current_pos_y > 30:
             print("Arrived destination")
@@ -114,47 +125,34 @@ def obstacle_avoidance():
             sys.exit()
             break
 
-        if distance_udpated.is_set():
-            # distance_lock.acquire()
-            if distance_to_obstacle < 100 and distance_to_obstacle > 10:
-                move_left(0.5)  # m/s
-                current_pos_x = current_pos_x + 0.5
-                print("Current X: " + str(current_pos_x))
-                if current_pos_x >= 2.0:
-                    back_to_center()
-                    time.sleep(0.1)
-                    move_right(0.5) # m/s
-                    time.sleep(0.1)
-                    move_forward(2)
-                    time.sleep(0.1)
-                    move_left(0.5)
-                    time.sleep(0.1)
-                    current_pos_y = current_pos_y + 2
-            elif distance_to_obstacle > 100:
-                if current_pos_x == 0:
-                    move_forward(0.5)
-                    current_pos_y = current_pos_y + 0.5
-                elif current_pos_x > 0:
-                    move_forward(2)  # m/s
-                    current_pos_y = current_pos_y + 2
-                time.sleep(0.1)
+        # if distance_udpated.is_set():
+        distance_udpated.wait():
+        # distance_lock.acquire()
+        print("Distance to obstacle (used): "+str(distance_to_obstacle))
+        if distance_to_obstacle < 100 and distance_to_obstacle > 10:
+            move_left(step_velocity)  # m/s
+            print("Current X: " + str(current_pos_x))
+            if current_pos_x >= 2.0:
                 back_to_center()
-                print("Current Y: " + str(current_pos_y))
-                pass
+                move_right(0.5) # m/s
+                move_forward(2)
+                move_left(0.5)
+        elif distance_to_obstacle > 100:
+            if current_pos_x == 0:
+                move_forward(0.5)
+            elif current_pos_x != 0:
+                move_forward(2)  # m/s
+            back_to_center()
+            print("Current Y: " + str(current_pos_y))
 
-            print("Distance to obstacle (used): "+str(distance_to_obstacle))
-            # distance_lock.release()
-            distance_udpated.clear()
-            continue
+        # distance_lock.release()
+        distance_udpated.clear()
 
 
 def main():
     # arm_and_take_off(vehicle, 2)
     vehicle.groundspeed = 1  # m/s
     threads = []
-    # for func in [distance_measure,
-                 # obstacle_avoidance,
-                 # print_distance]:
     for func in [distance_measure,
                  obstacle_avoidance]:
         threads.append(threading.Thread(target=func))
