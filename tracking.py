@@ -8,6 +8,7 @@ import json
 import serial
 import argparse
 import threading
+import sys
 
 # connect to vehicle
 # vehicle = connect("192.168.0.24:14555", wait_ready=True)

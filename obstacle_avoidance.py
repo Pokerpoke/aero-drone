@@ -14,9 +14,11 @@ import sys
 
 # vehicle = connect("127.0.0.1:14555", wait_ready=True)
 vehicle = connect("192.168.0.17:14555", wait_ready=True)
-DISTANCE_TO_OBSTACLE = 0
+distance_to_obstacle = 0.0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
+current_pos_y = 0.0
+current_pos_x = 0.0
 
 
 def distance_measure():
@@ -44,10 +46,10 @@ def distance_measure():
         pulse_end = time.time()
         duration = pulse_end-pulse_start
 
-        global DISTANCE_TO_OBSTACLE
-        DISTANCE_TO_OBSTACLE = round(duration * 17150.0, 2)
+        global distance_to_obstacle
+        distance_to_obstacle = round(duration * 17150.0, 2)
 
-        # release
+        # release lock
         distance_lock.release()
         distance_udpated.set()
 
@@ -59,10 +61,10 @@ def print_distance():
     Print distance to obstacle.
     """
     while (True):
-        global DISTANCE_TO_OBSTACLE
+        global distance_to_obstacle
         distance_udpated.wait()
         distance_lock.acquire()
-        print("Distance to obstacle: "+str(DISTANCE_TO_OBSTACLE))
+        print("Distance to obstacle: "+str(distance_to_obstacle))
         distance_lock.release()
         time.sleep(0.5)
 
@@ -83,14 +85,20 @@ def obstacle_avoidance():
     """
     Turn right/left to avoide obstcle.
     """
-    global DISTANCE_TO_OBSTACLE
+    global distance_to_obstacle
+    global current_pos_x
     while (True):
         if distance_udpated.is_set():
             distance_lock.acquire()
-            if DISTANCE_TO_OBSTACLE < 100 and DISTANCE_TO_OBSTACLE > 10:
-                move_left(0.5)
-            elif DISTANCE_TO_OBSTACLE > 100:
-                move_forward(0.5)
+            if distance_to_obstacle < 100 and distance_to_obstacle > 10:
+                move_left(0.5)  # m/s
+                current_pos_x = current_pos_x + 0.5
+            elif distance_to_obstacle > 100:
+                if current_pos_x > 0:
+                    move_right(current_pos_x)  # m/s
+                    current_pos_x = 0
+                move_forward(0.5)  # m/s
+                current_pos_y = current_pos_y + 0.5
                 pass
             distance_lock.release()
 
@@ -109,8 +117,6 @@ def main():
         threads.append(threading.Thread(target=func))
         threads[-1].setDaemon(True)
         threads[-1].start()
-    # for thread in threads:
-    #     thread.join()
 
     while (True):
         try:
