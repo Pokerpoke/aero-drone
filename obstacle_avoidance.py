@@ -50,7 +50,7 @@ def distance_measure():
         distance_to_obstacle_new = round(duration * 17150.0, 2)
 
         distance_lock.acquire()
-        print("Distance to obstacle be: "+str(distance_to_obstacle))
+        print("Duration: "+str(duration))
         if distance_to_obstacle_new < 120 and \
             distance_to_obstacle < 120 and \
             abs(distance_to_obstacle_new - distance_to_obstacle) > A:
