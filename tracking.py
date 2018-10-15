@@ -44,6 +44,7 @@ def find_target():
         try:
             openmv_data = json.loads(line)
         except ValueError:
+            found_target.clear()
             continue
         openmv_cx = openmv_data[u"cx"]
         openmv_cy = openmv_data[u"cy"]
