@@ -31,10 +31,10 @@ def distance_measure():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(TRIG, GPIO.OUT)
     GPIO.setup(ECHO, GPIO.IN)
-    while(True):
-        # get lock
-        distance_lock.acquire()
 
+    A = 10
+
+    while(True):
         GPIO.output(TRIG, True)
         time.sleep(0.1)
         GPIO.output(TRIG, False)
@@ -47,7 +47,12 @@ def distance_measure():
         duration = pulse_end-pulse_start
 
         global distance_to_obstacle
-        distance_to_obstacle = round(duration * 17150.0, 2)
+        distance_to_obstacle_new = round(duration * 17150.0, 2)
+
+        distance_lock.acquire()
+        if distance_to_obstacle < 100:
+            if abs(distance_to_obstacle_new - distance_to_obstacle) > A:
+                distance_to_obstacle = distance_to_obstacle
 
         # release lock
         distance_lock.release()
