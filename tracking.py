@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+"""
+
+Copyright (c) 2018 NUAA AeroLab
+
+@file
+@author   Jiang Yang (pokerpoke@qq.com)
+@date     2018-10
+@brief    
+@version  0.0.1
+
+Last Modified:  2018-10-16
+Modified By:    Jiang Yang (pokerpoke@qq.com)
+
+"""
 
 from dronekit import connect, VehicleMode
 from aerodrone import *

@@ -1,14 +1,14 @@
 #!/bin/bash
 ################################################################################
 # 
-# Copyright (c) 2018 南京航空航天大学 航空通信网络研究室
+# Copyright (c) 2018 NUAA AeroLab
 # 
 # @author   Jiang Yang (pokerpoke@qq.com)
 # @date     2018-10
 # @brief    
 # @version  0.0.1
 # 
-# Last Modified:  2018-10-15
+# Last Modified:  2018-10-16
 # Modified By:    Jiang Yang (pokerpoke@qq.com)
 # 
 ################################################################################

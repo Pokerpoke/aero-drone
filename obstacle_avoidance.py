@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+"""
+
+Copyright (c) 2018 NUAA AeroLab
+
+@file
+@author   Jiang Yang (pokerpoke@qq.com)
+@date     2018-10
+@brief    
+@version  0.0.1
+
+Last Modified:  2018-10-16
+Modified By:    Jiang Yang (pokerpoke@qq.com)
+
+"""
 
 from dronekit import connect, VehicleMode
 from aerodrone import *
@@ -143,17 +157,16 @@ def obstacle_avoidance():
             print("Current X: " + str(current_pos_x))
             if current_pos_x >= 2.0:
                 back_to_center()
-                move_right(0.5)  # m/s
-                for _ in range(8):
-                    move_forward(0.5)
+                move_right(0.5)
+                # move forward for 4m
+                move_forward(0.5, 8)
                 move_left(0.5)
         elif distance_to_obstacle > 100:
             if current_pos_x == 0:
                 move_forward(0.5)
             elif current_pos_x != 0:
-                # move_forward(2)  # m/s
-                for _ in range(8):
-                    move_forward(0.5)
+                # move forward for 4m
+                move_forward(0.5, 8)
             back_to_center()
             print("Current Y: " + str(current_pos_y))
 
