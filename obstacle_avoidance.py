@@ -12,8 +12,8 @@ import serial
 import sys
 
 
-# vehicle = connect("127.0.0.1:14555", wait_ready=True)
-vehicle = connect("192.168.0.17:14555", wait_ready=True)
+vehicle = connect("127.0.0.1:14555", wait_ready=True)
+# vehicle = connect("192.168.0.17:14555", wait_ready=True)
 distance_to_obstacle = 0.0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
@@ -137,19 +137,28 @@ def obstacle_avoidance():
         distance_udpated.wait()
         # distance_lock.acquire()
         print("Distance to obstacle (used): "+str(distance_to_obstacle))
-        if distance_to_obstacle < 100 and distance_to_obstacle > 10:
+        if distance_to_obstacle < 130 and distance_to_obstacle > 10:
             move_left(step_velocity)  # m/s
+            move_left(0.5)
             print("Current X: " + str(current_pos_x))
             if current_pos_x >= 2.0:
                 back_to_center()
+<<<<<<< HEAD
                 move_right(0.5)  # m/s
                 move_forward(2)
+=======
+                move_right(0.5) # m/s
+                for _ in range(8):
+                    move_forward(0.5)
+>>>>>>> a81e4f40d9e105a16469cec32404da987c7ad8f2
                 move_left(0.5)
         elif distance_to_obstacle > 100:
             if current_pos_x == 0:
                 move_forward(0.5)
             elif current_pos_x != 0:
-                move_forward(2)  # m/s
+                # move_forward(2)  # m/s
+                for _ in range(8):
+                    move_forward(0.5)
             back_to_center()
             print("Current Y: " + str(current_pos_y))
 
