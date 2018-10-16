@@ -23,6 +23,7 @@ current_pos_x = 0.0
 step_velocity = 0.5
 step_duration = 1.0
 
+
 def distance_measure():
     """
     Get distance to obstacle.
@@ -40,8 +41,8 @@ def distance_measure():
         distance_udpated.clear()
 
         t_sum = 0.0
-        t_times = 0.0
 
+        # mean filter
         for _ in range(5):
             GPIO.output(TRIG, True)
             time.sleep(0.1)
@@ -56,18 +57,19 @@ def distance_measure():
 
             distance_to_obstacle_new = round(duration * 17150.0, 2)
 
-            # if distance_to_obstacle_new < 500 and distance_to_obstacle_new > 10:
             t_sum = t_sum + distance_to_obstacle_new
-        
+
         t_sum = t_sum / 5.0
 
-        # print(str(t_sum) + " , " + str(t_times))
+        # update distance
+        # lock
         distance_lock.acquire()
-        # filter
         distance_to_obstacle = t_sum
+        # for debug
         print("Distance to obstacle: " + str(distance_to_obstacle))
         # release lock
         distance_lock.release()
+        # call other threads
         distance_udpated.set()
 
 
@@ -84,11 +86,13 @@ def move_left(v, duration=1):
     current_pos_x = current_pos_x + v * duration
     return True
 
+
 def move_right(v, duration=1):
     global current_pos_x
     send_body_ned_velocity(vehicle, 0, v, 0, duration)
     current_pos_x = current_pos_x - v * duration
     return True
+
 
 def back_to_center():
     global current_pos_x
@@ -98,8 +102,9 @@ def back_to_center():
             move_right(step_velocity)
         elif current_pos_x < 0:
             move_left(step_velocity)
-    print("Current X: " + str(current_pos_x))
+    print("Current pos x: " + str(current_pos_x))
     return True
+
 
 def obstacle_avoidance():
     """
@@ -107,14 +112,14 @@ def obstacle_avoidance():
     """
     global distance_to_obstacle
     # playground
-    # 
+    #
     # |         |
     # |    -----|
     # |         |
     # |-----    |
     # |         |
     # |         |
-    # current_pos_x : ←   
+    # current_pos_x : ←
     # current_pos_y : ↑
     global current_pos_x
     global current_pos_y
@@ -137,7 +142,7 @@ def obstacle_avoidance():
             print("Current X: " + str(current_pos_x))
             if current_pos_x >= 2.0:
                 back_to_center()
-                move_right(0.5) # m/s
+                move_right(0.5)  # m/s
                 move_forward(2)
                 move_left(0.5)
         elif distance_to_obstacle > 100:
