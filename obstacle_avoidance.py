@@ -31,11 +31,21 @@ vehicle = connect("127.0.0.1:14555", wait_ready=True)
 distance_to_obstacle = 0.0
 distance_lock = threading.Lock()
 distance_udpated = threading.Event()
+
+# playground
+#
+# |         |
+# |    -----|
+# |         |
+# |-----    |
+# |         |
+# |         |
+# current_pos_x : ←
+# current_pos_y : ↑
 current_pos_y = 0.0
 current_pos_x = 0.0
 
 step_velocity = 0.5
-step_duration = 1.0
 
 
 def distance_measure():
@@ -116,7 +126,7 @@ def back_to_center():
             move_right(step_velocity)
         elif current_pos_x < 0:
             move_left(step_velocity)
-    print("Current pos x: " + str(current_pos_x))
+    print("Current position x: " + str(current_pos_x))
     return True
 
 
@@ -125,16 +135,6 @@ def obstacle_avoidance():
     Turn right/left to avoide obstcle.
     """
     global distance_to_obstacle
-    # playground
-    #
-    # |         |
-    # |    -----|
-    # |         |
-    # |-----    |
-    # |         |
-    # |         |
-    # current_pos_x : ←
-    # current_pos_y : ↑
     global current_pos_x
     global current_pos_y
     global step_velocity
@@ -145,7 +145,6 @@ def obstacle_avoidance():
             vehicle.mode = VehicleMode("LAND")
             vehicle.close()
             sys.exit()
-            break
 
         # if distance_udpated.is_set():
         distance_udpated.wait()
@@ -167,8 +166,8 @@ def obstacle_avoidance():
             elif current_pos_x != 0:
                 # move forward for 4m
                 move_forward(0.5, 8)
-            back_to_center()
-            print("Current Y: " + str(current_pos_y))
+                back_to_center()
+            print("Current position y: " + str(current_pos_y))
 
         # distance_lock.release()
         distance_udpated.clear()

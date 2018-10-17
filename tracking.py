@@ -23,10 +23,10 @@ import serial
 import argparse
 import threading
 import sys
+import timeit
 
 # connect to vehicle
 # vehicle = connect("192.168.0.24:14555", wait_ready=True)
-# vehicle = connect("/dev/ttyACM0", wait_ready=True)
 vehicle = connect("127.0.0.1:14555", wait_ready=True)
 # ser = serial.Serial("/dev/serial0", 115200, timeout=0.5)
 target_pos = OpenMV_POS()
@@ -50,15 +50,16 @@ def find_target():
     """
     while (True):
         target_pos_lock.acquire()
-        # ser.flushInput()
-        # line = ser.readline()
+        ser.flushInput()
+        line = ser.readline()
 
         # For debug
-        line = json.dumps({"cx": 100, "cy": 80})
+        # line = json.dumps({"cx": 100, "cy": 80})
         try:
             openmv_data = json.loads(line)
         except ValueError:
-            found_target.clear()
+            print("Not found")
+            # found_target.clear()
             continue
         openmv_cx = openmv_data[u"cx"]
         openmv_cy = openmv_data[u"cy"]
@@ -88,26 +89,34 @@ def find_target():
         # wake up other threads
         found_target.set()
 
-    return None
-
 
 def tracking():
     """
     Follow target.
     """
-    # get_close_to_target
+    # get close to target
     vehicle.groundspeed = 3.0  # m/s
+    found_target.wait()
+    # lock and make sure UAV will go to first target
     target_pos_lock.acquire()
-    goto(vehicle, 0.15*target_pos.x, 0.15*target_pos.y)
+    goto(vehicle, 0.05*target_pos.x, 0.05*target_pos.y)
     target_pos_lock.release()
+    found_target.clear()
 
     # follow
+    # start timer
+    start = timeit.default_timer()
     vehicle.groundspeed = 1.5  # m/s
     while (True):
+        # wait for find_target thread
         found_target.wait()
-        goto(vehicle, 0.15*target_pos.x, 0.15*target_pos.y)
+        goto(vehicle, 0.05*target_pos.x, 0.05*target_pos.y)
         found_target.clear()
-    return None
+        # check if over 150s
+        if timeit.default_timer() - start > 150:
+            vehicle.mode = VehicleMode("RETURN_TO_LAUNCH")
+            vehicle.close()
+            sys.exit()
 
 
 def draw_circle(radis=6.0):
