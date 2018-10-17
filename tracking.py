@@ -48,6 +48,7 @@ def land():
     """
     Change mode to LAND, close vehicle and terminate program.
     """
+    print("Mode change to land.")
     vehicle.mode = VehicleMode("LAND")
     vehicle.close()
     sys.exit()
@@ -57,6 +58,7 @@ def return_to_launch():
     """
     Change mode to RTL(RETURN_TO_LAUNCH), close vehicle and terminate program.
     """
+    print("Mode change to RTL.")
     vehicle.mode = VehicleMode("RTL")
     vehicle.close()
     sys.exit()
@@ -128,7 +130,7 @@ def tracking():
     while (True):
         # wait for find_target thread
         found_target.wait()
-        goto(vehicle, 0.05*target_pos.x, 0.05*target_pos.y)
+        goto(vehicle, 0.04*target_pos.x, 0.04*target_pos.y)
         found_target.clear()
         # check if over 150s
         if (time.time() - start) > 150.0:

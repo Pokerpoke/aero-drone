@@ -38,17 +38,28 @@ distance_udpated = threading.Event()
 # |    -----|
 # |         |
 # |-----    |
-# |         |
-# |         |
-# current_pos_x : ←
+# |    ↑    |
+# |   ←o    |
+# o             : origin
 # current_pos_y : ↑
+# current_pos_x : ←
 current_pos_y = 0.0
 current_pos_x = 0.0
 
-step_velocity = 0.5
+step_velocity = 0.25
 
 
-def distance_measure():
+def land():
+    """
+    Change mode to LAND, close vehicle and terminate program.
+    """
+    print("Mode change to land.")
+    vehicle.mode = VehicleMode("LAND")
+    vehicle.close()
+    sys.exit()
+
+
+def distance_measurement():
     """
     Get distance to obstacle.
     """
@@ -67,7 +78,7 @@ def distance_measure():
         t_sum = 0.0
 
         # mean filter
-        for _ in range(5):
+        for _ in range(7):
             GPIO.output(TRIG, True)
             time.sleep(0.1)
             GPIO.output(TRIG, False)
@@ -83,51 +94,68 @@ def distance_measure():
 
             t_sum = t_sum + distance_to_obstacle_new
 
-        t_sum = t_sum / 5.0
+        t_sum = t_sum / 7.0
 
         # update distance
-        # lock
         distance_lock.acquire()
         distance_to_obstacle = t_sum
-        # for debug
+        # FOR DEBUG: print distance
         print("Distance to obstacle: " + str(distance_to_obstacle))
-        # release lock
         distance_lock.release()
         # call other threads
         distance_udpated.set()
 
 
 def move_forward(v, duration=1):
+    """
+    Move forward.
+
+    :param v: velocity
+    :param duration: move for specified seconds.
+    """
     global current_pos_y
     send_body_ned_velocity(vehicle, v, 0, 0, duration)
     current_pos_y = current_pos_y + v * duration
-    return True
+    print("Move forward, y: " + str(current_pos_y))
 
 
 def move_left(v, duration=1):
+    """
+    Move left.
+
+    :param v: velocity
+    :param duration: move for specified seconds.
+    """
     global current_pos_x
     send_body_ned_velocity(vehicle, 0, -v, 0, duration)
     current_pos_x = current_pos_x + v * duration
-    return True
+    print("Move left, x: " + str(current_pos_x))
 
 
 def move_right(v, duration=1):
+    """
+    Move right.
+
+    :param v: velocity
+    :param duration: move for specified seconds.
+    """
     global current_pos_x
     send_body_ned_velocity(vehicle, 0, v, 0, duration)
     current_pos_x = current_pos_x - v * duration
-    return True
+    print("Move right, x: " + str(current_pos_x))
 
 
 def back_to_center():
+    """
+    Move back to center.
+    """
     global current_pos_x
     global step_velocity
-    while (current_pos_x != 0):
-        if current_pos_x > 0:
+    while (current_pos_x != 0.0):
+        if current_pos_x > 0.0:
             move_right(step_velocity)
-        elif current_pos_x < 0:
+        elif current_pos_x < 0.0:
             move_left(step_velocity)
-    print("Current position x: " + str(current_pos_x))
-    return True
 
 
 def obstacle_avoidance():
@@ -138,46 +166,50 @@ def obstacle_avoidance():
     global current_pos_x
     global current_pos_y
     global step_velocity
+
+    DISTANCE_THRESHOLD = 120.0
+
     while (True):
+        # reach destination
         if current_pos_y > 30:
             print("Arrived destination")
             back_to_center()
-            vehicle.mode = VehicleMode("LAND")
-            vehicle.close()
-            sys.exit()
-
-        # if distance_udpated.is_set():
+            land()
+        # wait for distance measurement
         distance_udpated.wait()
-        # distance_lock.acquire()
+        # FOR DEBUG: compare with distance measurement output
         print("Distance to obstacle (used): "+str(distance_to_obstacle))
-        if distance_to_obstacle < 130 and distance_to_obstacle > 10:
+        # check if too needed to avoid
+        if distance_to_obstacle < DISTANCE_THRESHOLD and distance_to_obstacle > 10:
+            # avoid
             move_left(step_velocity)  # m/s
-            move_left(0.5)
-            print("Current X: " + str(current_pos_x))
+            # touch the border of playground
             if current_pos_x >= 2.0:
                 back_to_center()
-                move_right(0.5)
+                move_right(0.5, 2)
                 # move forward for 4m
                 move_forward(0.5, 8)
-                move_left(0.5)
-        elif distance_to_obstacle > 100:
+                move_left(0.5, 2)
+        elif distance_to_obstacle > DISTANCE_THRESHOLD:
+            # go ahead
             if current_pos_x == 0:
                 move_forward(0.5)
+            # go across the obstacle
             elif current_pos_x != 0:
+                move_left(0.5)
                 # move forward for 4m
                 move_forward(0.5, 8)
                 back_to_center()
-            print("Current position y: " + str(current_pos_y))
-
-        # distance_lock.release()
         distance_udpated.clear()
 
 
 def main():
     arm_and_take_off(vehicle, 2)
     vehicle.groundspeed = 1  # m/s
+    # wait for UAV to stablize
+    time.sleep(1)
     threads = []
-    for func in [distance_measure,
+    for func in [distance_measurement,
                  obstacle_avoidance]:
         threads.append(threading.Thread(target=func))
         threads[-1].setDaemon(True)
@@ -187,10 +219,7 @@ def main():
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            print("Mode change to land.")
-            vehicle.mode = VehicleMode("LAND")
-            vehicle.close()
-            sys.exit()
+            land()
 
 
 if __name__ == '__main__':
